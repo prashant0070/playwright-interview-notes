@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Convert a folder of markdown interview notes into a handwritten-style PDF book.
- * Usage: node build-pdf.mjs <notesDir> <outPdf> <bookTitle> <subtitle>
+ * Convert curriculum markdown into a clean notebook-style PDF.
+ * Usage: node build-pdf.mjs <notesDir> <outPdf> [title] [subtitle]
  */
 import fs from 'fs';
 import path from 'path';
@@ -12,20 +12,28 @@ import hljs from 'highlight.js';
 import { chromium } from 'playwright';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const [notesDir, outPdf, bookTitle = 'Interview Notes', subtitle = 'Notebook study edition'] = process.argv.slice(2);
 
-const [notesDir, outPdf, bookTitle = 'Interview Notes', subtitle = 'Deep study edition'] = process.argv.slice(2);
 if (!notesDir || !outPdf) {
   console.error('Usage: node build-pdf.mjs <notesDir> <outPdf> [title] [subtitle]');
   process.exit(1);
 }
 
+const SKIP = new Set([
+  'readme.md',
+  'changelog.md',
+  'contributing.md',
+  'code_of_conduct.md',
+  'license.md',
+]);
+
 const md = new MarkdownIt({
-  html: true,
+  html: false,
   linkify: true,
   typographer: true,
   highlight(str, lang) {
     if (lang === 'mermaid') {
-      return `<div class="diagram-frame"><pre class="mermaid">${md.utils.escapeHtml(str)}</pre></div>`;
+      return `<div class="diagram-frame"><div class="diagram-label">diagram</div><pre class="mermaid">${md.utils.escapeHtml(str)}</pre></div>`;
     }
     if (lang && hljs.getLanguage(lang)) {
       try {
@@ -34,21 +42,34 @@ const md = new MarkdownIt({
     }
     return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`;
   },
-}).use(markdownItAnchor, { level: [1, 2, 3], permalink: false });
+}).use(markdownItAnchor, { level: [2, 3], permalink: false });
 
-function listMarkdownFiles(dir) {
+function listCurriculumFiles(dir) {
   return fs
     .readdirSync(dir)
     .filter((f) => f.endsWith('.md') && !f.startsWith('.'))
+    .filter((f) => !SKIP.has(f.toLowerCase()))
+    .filter((f) => /^\d{2}-/.test(f)) // only numbered notes: 00-, 01-, ...
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
 
-function enhanceDiagrams(html) {
-  // Mermaid fences only — avoid catastrophic regex on large code blocks
-  return html.replace(
-    /<pre class="hljs"><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,
-    (_m, code) => `<div class="diagram-frame"><pre class="mermaid">${code}</pre></div>`
-  );
+/** "01 — Title" / "Pattern 3: Title" → clean display title (no double index) */
+function cleanTitle(rawTitle, file) {
+  let t = rawTitle.replace(/[#*`]/g, '').trim();
+  t = t.replace(/^\d{1,2}\s*[—–\-:.]\s*/u, '');
+  t = t.replace(/^Pattern\s+\d+\s*:\s*/i, '');
+  t = t.replace(/^Module\s+\d+\s*[—–\-:.]\s*/i, '');
+  return t || file;
+}
+
+function fileIndex(file) {
+  const m = file.match(/^(\d{2})-/);
+  return m ? m[1] : null;
+}
+
+function stripLeadingH1(markdown) {
+  // Avoid repeating the same chapter title under TOC numbering
+  return markdown.replace(/^#\s+.+?\n+/, '');
 }
 
 function buildBook(files) {
@@ -58,16 +79,27 @@ function buildBook(files) {
   for (const file of files) {
     const raw = fs.readFileSync(path.join(notesDir, file), 'utf8');
     const titleMatch = raw.match(/^#\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1].replace(/[#*`]/g, '').trim() : file;
-    const id = file.replace(/\.md$/, '');
-    toc.push({ id, title, file });
-    let html = md.render(raw);
-    html = enhanceDiagrams(html);
-    modules.push(`<section class="module" id="${id}">${html}<div class="footer-note">Module: ${file} · Keep practicing out loud · Verify APIs against official docs</div></section>`);
+    const index = fileIndex(file);
+    const title = cleanTitle(titleMatch ? titleMatch[1] : file, file);
+    const id = `ch-${index || file.replace(/\.md$/, '')}`;
+
+    toc.push({ id, index, title, file });
+
+    const bodyMd = stripLeadingH1(raw);
+    let html = md.render(bodyMd);
+    modules.push(`
+<section class="module" id="${id}">
+  <h1><span class="num">${index}.</span> ${md.utils.escapeHtml(title)}</h1>
+  ${html}
+  <div class="module-footer">Chapter ${index} · ${md.utils.escapeHtml(file)}</div>
+</section>`);
   }
 
   const tocHtml = toc
-    .map((t, i) => `<li><a href="#${t.id}">${String(i + 1).padStart(2, '0')}. ${t.title}</a></li>`)
+    .map(
+      (t) =>
+        `<li><span class="num">${t.index}.</span><a href="#${t.id}">${md.utils.escapeHtml(t.title)}</a></li>`
+    )
     .join('\n');
 
   const css = fs.readFileSync(path.join(__dirname, 'handwritten.css'), 'utf8');
@@ -76,8 +108,10 @@ function buildBook(files) {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>${bookTitle}</title>
-  <style>${css}</style>
+  <title>${md.utils.escapeHtml(bookTitle)}</title>
+  <style>${css}
+  h1 .num { color: var(--accent); margin-right: 0.25em; }
+  </style>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
     mermaid.initialize({
@@ -85,31 +119,29 @@ function buildBook(files) {
       theme: 'base',
       securityLevel: 'loose',
       themeVariables: {
-        fontFamily: 'Kalam, Caveat, comic sans ms, cursive',
-        primaryColor: '#f7f1e6',
-        primaryTextColor: '#1f1a17',
-        primaryBorderColor: '#3a4f7a',
-        lineColor: '#b23a2b',
+        fontFamily: 'Patrick Hand, Caveat, cursive',
+        primaryColor: '#fbf7eb',
+        primaryTextColor: '#1a1a1a',
+        primaryBorderColor: '#1f4e79',
+        lineColor: '#1f4e79',
         secondaryColor: '#fff4b8',
-        tertiaryColor: '#efe6d6'
+        tertiaryColor: '#efe8d8'
       }
     });
-    window.__MERMAID_READY__ = mermaid.run ? mermaid.run() : Promise.resolve();
   </script>
 </head>
 <body>
   <section class="cover">
-    <div class="stamp">handwritten study edition</div>
-    <h1 class="hand-title">${bookTitle}</h1>
-    <p class="subtitle">${subtitle}</p>
-    <p class="meta">
-      In-depth explanations · diagrams · code · interview drills<br/>
-      Generated for focused revision · A4 printable PDF
-    </p>
+    <div class="stamp">notebook study edition</div>
+    <h1 class="hand-title">${md.utils.escapeHtml(bookTitle)}</h1>
+    <p class="subtitle">${md.utils.escapeHtml(subtitle)}</p>
+    <p class="meta">Ruled copy style · one index per chapter · explanations, diagrams &amp; code</p>
   </section>
   <section class="toc">
-    <h1>Contents (your map)</h1>
-    <ol>${tocHtml}</ol>
+    <h1>Contents</h1>
+    <ol class="toc-list">
+      ${tocHtml}
+    </ol>
   </section>
   ${modules.join('\n')}
 </body>
@@ -117,38 +149,38 @@ function buildBook(files) {
 }
 
 async function main() {
-  const files = listMarkdownFiles(notesDir);
-  if (!files.length) throw new Error(`No markdown in ${notesDir}`);
+  const files = listCurriculumFiles(notesDir);
+  if (!files.length) throw new Error(`No numbered curriculum markdown in ${notesDir}`);
 
   const html = buildBook(files);
   const htmlPath = outPdf.replace(/\.pdf$/i, '.html');
   fs.mkdirSync(path.dirname(outPdf), { recursive: true });
   fs.writeFileSync(htmlPath, html, 'utf8');
-  console.log(`Wrote HTML: ${htmlPath} (${files.length} modules)`);
+  console.log(`HTML: ${htmlPath} (${files.length} chapters)`);
+  console.log('Chapters:', files.map((f) => fileIndex(f)).join(', '));
 
   const browser = await chromium.launch();
   const page = await browser.newPage();
   await page.goto('file://' + htmlPath, { waitUntil: 'networkidle', timeout: 120000 });
-  // Wait for fonts + mermaid
-  await page.waitForTimeout(2500);
+  await page.waitForTimeout(2000);
   try {
     await page.waitForFunction(() => document.fonts && document.fonts.status === 'loaded', { timeout: 15000 });
   } catch {}
+
   await page.pdf({
     path: outPdf,
     format: 'A4',
     printBackground: true,
     displayHeaderFooter: true,
-    headerTemplate: `<div style="font-size:8px;width:100%;padding:0 14mm;color:#7a6a5a;font-family:Kalam,cursive;">${bookTitle}</div>`,
-    footerTemplate: `<div style="font-size:8px;width:100%;padding:0 14mm;color:#7a6a5a;font-family:Kalam,cursive;display:flex;justify-content:space-between;"><span>interview study notes</span><span class="pageNumber"></span>/<span class="totalPages"></span></div>`,
-    margin: { top: '14mm', bottom: '16mm', left: '0', right: '0' },
+    headerTemplate: `<div style="font-size:8px;width:100%;padding:0 12mm;color:#666;font-family:Patrick Hand,cursive;">${bookTitle.replace(/[<>&]/g, '')}</div>`,
+    footerTemplate: `<div style="font-size:8px;width:100%;padding:0 12mm;color:#666;font-family:Patrick Hand,cursive;display:flex;justify-content:space-between;"><span>notebook notes</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>`,
+    margin: { top: '12mm', bottom: '14mm', left: '0', right: '0' },
   });
   await browser.close();
-  const sizeMb = (fs.statSync(outPdf).size / (1024 * 1024)).toFixed(2);
-  console.log(`Wrote PDF: ${outPdf} (${sizeMb} MB)`);
+  console.log(`PDF: ${outPdf} (${(fs.statSync(outPdf).size / 1024 / 1024).toFixed(2)} MB)`);
 }
 
-main().catch((err) => {
-  console.error(err);
+main().catch((e) => {
+  console.error(e);
   process.exit(1);
 });

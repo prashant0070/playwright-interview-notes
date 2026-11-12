@@ -1,200 +1,266 @@
-/* Handwritten study-notes aesthetic — readable for long sessions */
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;600&display=swap');
+/* School-copy notebook: every vertical rhythm is an integer multiple of --rule */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Patrick+Hand&family=JetBrains+Mono:wght@400;600&display=swap');
 
 :root {
-  --ink: #1f1a17;
-  --ink-soft: #3d342e;
-  --paper: #f7f1e6;
-  --paper-line: rgba(70, 110, 160, 0.12);
-  --accent: #b23a2b;
-  --accent-2: #2f5d50;
-  --accent-3: #3a4f7a;
-  --rule: #d4c4a8;
-  --code-bg: #efe6d6;
-  --sticky: #fff4b8;
-  --margin: #e8d5c4;
+  --ink: #1c1c1c;
+  --muted: #3a3a3a;
+  --paper: #f7f3e8;
+  --blue-line: #9eb6d4;
+  --margin: #d96666;
+  --heading: #1a3d5c;
+  --rule: 30px; /* single grid unit — do not use fractions of this */
+  --gutter: 16mm;
 }
 
 @page {
   size: A4;
-  margin: 16mm 14mm 18mm 18mm;
+  margin: 10mm 11mm 12mm 8mm;
 }
 
 * { box-sizing: border-box; }
 
-html, body {
-  margin: 0;
-  padding: 0;
+html {
   background: var(--paper);
-  color: var(--ink);
-  font-family: "Source Serif 4", Georgia, serif;
-  font-size: 11.2pt;
-  line-height: 1.55;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
 }
 
 body {
+  margin: 0;
+  padding: 0;
+  color: var(--ink);
+  background-color: var(--paper);
+  font-family: "Patrick Hand", "Caveat", cursive;
+  font-size: 15px;
+  line-height: var(--rule);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+
+  /* Red margin + blue rules. Position so first text baseline sits on a rule. */
   background-image:
-    linear-gradient(90deg, transparent 14mm, rgba(178, 58, 43, 0.18) 14mm, rgba(178, 58, 43, 0.18) 14.5mm, transparent 14.5mm),
+    linear-gradient(
+      90deg,
+      transparent calc(var(--gutter) - 1.2px),
+      var(--margin) calc(var(--gutter) - 1.2px),
+      var(--margin) var(--gutter),
+      transparent var(--gutter)
+    ),
     repeating-linear-gradient(
-      transparent,
-      transparent 27px,
-      var(--paper-line) 28px
+      to bottom,
+      transparent 0,
+      transparent calc(var(--rule) - 1.25px),
+      var(--blue-line) calc(var(--rule) - 1.25px),
+      var(--blue-line) var(--rule)
     );
+  background-size: 100% 100%, 100% var(--rule);
+  background-position: 0 0, 0 0;
   background-attachment: local;
 }
 
+.cover,
+.toc,
+.module {
+  padding-left: calc(var(--gutter) + 4mm);
+  padding-right: 3mm;
+  padding-top: 0;
+  padding-bottom: calc(var(--rule) * 2);
+}
+
+/* ---- Cover ---- */
 .cover {
-  min-height: 95vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 24mm 10mm 20mm 8mm;
+  min-height: 90vh;
   page-break-after: always;
-  background:
-    radial-gradient(ellipse at 20% 10%, rgba(255,244,184,0.55), transparent 50%),
-    radial-gradient(ellipse at 90% 80%, rgba(47,93,80,0.08), transparent 45%),
-    var(--paper);
+  padding-top: calc(var(--rule) * 6);
+}
+
+.cover .stamp {
+  display: inline-block;
+  border: 2px solid var(--heading);
+  color: var(--heading);
+  padding: 0 10px;
+  height: var(--rule);
+  line-height: var(--rule);
+  font-family: "Caveat", cursive;
+  font-size: 18px;
+  margin: 0 0 var(--rule) 0;
 }
 
 .cover .hand-title {
   font-family: "Caveat", cursive;
-  font-size: 54pt;
-  line-height: 0.95;
-  color: var(--accent);
-  margin: 0 0 8mm;
-  transform: rotate(-1.2deg);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--heading);
+  margin: 0 0 var(--rule) 0;
+  line-height: calc(var(--rule) * 2);
+  height: calc(var(--rule) * 4);
 }
 
-.cover .subtitle {
-  font-family: "Kalam", cursive;
-  font-size: 16pt;
-  color: var(--accent-2);
-  max-width: 42rem;
-  transform: rotate(0.4deg);
-}
-
+.cover .subtitle,
 .cover .meta {
-  margin-top: 18mm;
-  font-family: "Kalam", cursive;
-  font-size: 12pt;
-  color: var(--ink-soft);
+  margin: 0;
+  line-height: var(--rule);
+  color: var(--muted);
+  font-size: 16px;
 }
 
-.cover .stamp {
-  align-self: flex-start;
-  margin-top: 12mm;
-  border: 2.5px dashed var(--accent);
-  color: var(--accent);
-  padding: 6px 14px;
-  font-family: "Caveat", cursive;
-  font-size: 18pt;
-  transform: rotate(-3deg);
-}
+.cover .meta { margin-top: calc(var(--rule) * 2); }
 
+/* ---- TOC ---- */
 .toc {
   page-break-after: always;
-  padding: 8mm 4mm 8mm 2mm;
 }
 
-.toc h1 {
+.toc > h1 {
   font-family: "Caveat", cursive;
-  font-size: 34pt;
-  color: var(--accent-3);
-  margin-bottom: 6mm;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--heading);
+  margin: 0 0 var(--rule) 0;
+  line-height: calc(var(--rule) * 2);
+  height: calc(var(--rule) * 2);
+  border: none;
 }
 
-.toc ol {
-  columns: 2;
-  column-gap: 8mm;
-  padding-left: 6mm;
+.toc-list {
+  list-style: none !important;
+  margin: 0;
+  padding: 0;
 }
 
-.toc li {
-  font-family: "Kalam", cursive;
-  font-size: 11pt;
-  margin: 2.5mm 0;
+.toc-list li {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  min-height: var(--rule);
+  line-height: var(--rule);
+  font-size: 15px;
   break-inside: avoid;
 }
 
+.toc-list li::before {
+  content: none !important; /* never treat TOC as notebook bullets */
+}
+
+.toc-list .num {
+  flex: 0 0 2.6em;
+  color: var(--heading);
+  font-weight: 700;
+  text-align: right;
+  line-height: var(--rule);
+}
+
+.toc-list a {
+  flex: 1;
+  color: var(--ink);
+  text-decoration: none;
+  line-height: var(--rule);
+}
+
+/* ---- Chapters ---- */
 .module {
   page-break-before: always;
-  padding: 4mm 2mm 8mm 2mm;
 }
 
-.module:first-of-type { page-break-before: auto; }
+.module > h1 {
+  font-family: "Caveat", cursive;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--heading);
+  margin: 0 0 var(--rule) 0;
+  padding: 0;
+  line-height: calc(var(--rule) * 2);
+  height: calc(var(--rule) * 2);
+  border-bottom: 2px solid var(--blue-line);
+}
 
-h1, h2, h3, h4 {
+.module > h1 .num { margin-right: 0.2em; }
+
+h2, h3, h4 {
   font-family: "Caveat", cursive;
   font-weight: 700;
-  color: var(--accent-3);
-  line-height: 1.15;
+  color: var(--heading);
   page-break-after: avoid;
-}
-
-h1 {
-  font-size: 30pt;
-  color: var(--accent);
-  border-bottom: 2px solid var(--rule);
-  padding-bottom: 3mm;
-  margin-top: 0;
-  transform: rotate(-0.4deg);
+  margin: var(--rule) 0 0 0;
+  padding: 0;
 }
 
 h2 {
-  font-size: 20pt;
-  margin-top: 8mm;
-  color: var(--accent-2);
+  font-size: 20px;
+  line-height: calc(var(--rule) * 2);
+  height: calc(var(--rule) * 2);
 }
 
-h3 {
-  font-size: 15pt;
-  margin-top: 5mm;
-  color: var(--accent-3);
+h3, h4 {
+  font-size: 17px;
+  line-height: var(--rule);
+  height: var(--rule);
+  color: var(--muted);
 }
 
-h4 { font-size: 13pt; }
+p {
+  margin: 0;
+  padding: 0;
+  line-height: var(--rule);
+  font-size: 15px;
+}
 
-p { margin: 2.5mm 0; }
+.module ul,
+.module ol {
+  margin: 0;
+  padding: 0 0 0 1.2em;
+  line-height: var(--rule);
+  list-style: none;
+}
 
-strong { color: var(--ink); }
+/* Notebook dashes only inside chapter body — not in Contents */
+.module ul > li::before,
+.module ol > li::before {
+  content: "– ";
+  color: var(--heading);
+}
 
-a { color: var(--accent-3); text-decoration: none; }
-
-ul, ol { margin: 2mm 0 4mm; padding-left: 6mm; }
-li { margin: 1.2mm 0; }
+.module li {
+  margin: 0;
+  padding: 0;
+  line-height: var(--rule);
+  min-height: var(--rule);
+}
 
 blockquote {
-  margin: 4mm 0;
-  padding: 3mm 4mm;
-  background: var(--sticky);
-  border-left: 4px solid #e0b84a;
-  font-family: "Kalam", cursive;
-  font-size: 11.5pt;
-  box-shadow: 1px 2px 0 rgba(0,0,0,0.06);
-  transform: rotate(-0.3deg);
+  margin: var(--rule) 0;
+  padding: 0 0 0 12px;
+  border-left: 3px solid #d4a017;
+  background: rgba(255, 244, 184, 0.35);
+  line-height: var(--rule);
 }
+
+blockquote p { margin: 0; line-height: var(--rule); }
+
+strong { font-weight: 700; }
+a { color: var(--heading); text-decoration: none; }
 
 code {
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.86em;
-  background: var(--code-bg);
-  padding: 0.1em 0.35em;
-  border-radius: 3px;
+  font-size: 12px;
+  background: #ebe4d4;
+  padding: 0 3px;
+  border-radius: 2px;
 }
 
+/* Code/tables break the grid visually — isolate with full-rule margins */
 pre {
-  background: #2b2622;
-  color: #f4ebe0;
-  padding: 3.5mm 4mm;
-  border-radius: 6px;
-  overflow: hidden;
-  font-size: 8.6pt;
-  line-height: 1.45;
+  margin: var(--rule) 0;
+  padding: 10px 12px;
+  background: #2a2622;
+  color: #f3ebe1;
+  border-radius: 4px;
+  border: 1px solid #181412;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 16px;
   page-break-inside: avoid;
-  border: 1.5px solid #1a1614;
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.12);
+  overflow: hidden;
 }
 
 pre code {
@@ -207,74 +273,59 @@ pre code {
 table {
   width: 100%;
   border-collapse: collapse;
-  margin: 4mm 0;
-  font-size: 9.8pt;
+  margin: var(--rule) 0;
+  font-size: 13px;
+  line-height: 1.35;
+  background: rgba(255,255,255,0.55);
   page-break-inside: avoid;
-  background: rgba(255,255,255,0.35);
 }
 
 th, td {
-  border: 1px solid var(--rule);
-  padding: 2mm 2.5mm;
+  border: 1px solid #cbbfa8;
+  padding: 4px 7px;
   vertical-align: top;
 }
 
 th {
-  background: rgba(58, 79, 122, 0.12);
-  font-family: "Kalam", cursive;
+  background: rgba(26, 61, 92, 0.1);
+  font-family: "Caveat", cursive;
+  font-size: 15px;
   text-align: left;
 }
 
 hr {
   border: none;
-  border-top: 1.5px dashed var(--rule);
-  margin: 7mm 0;
+  height: var(--rule);
+  margin: 0;
+  background: linear-gradient(to bottom, transparent calc(var(--rule) / 2 - 0.5px), #cbbfa8 calc(var(--rule) / 2 - 0.5px), #cbbfa8 calc(var(--rule) / 2 + 0.5px), transparent calc(var(--rule) / 2 + 0.5px));
 }
 
 .diagram-frame {
-  margin: 5mm 0;
-  padding: 4mm;
-  border: 2px solid var(--ink-soft);
-  border-radius: 10px 18px 8px 14px / 12px 8px 16px 10px;
-  background: rgba(255,255,255,0.45);
+  margin: var(--rule) 0;
+  padding: 8px 10px;
+  border: 1.5px solid var(--muted);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.6);
   page-break-inside: avoid;
-  position: relative;
 }
 
-.diagram-frame::before {
-  content: "diagram";
-  position: absolute;
-  top: -3.2mm;
-  left: 4mm;
-  background: var(--paper);
-  padding: 0 2mm;
+.diagram-label {
   font-family: "Caveat", cursive;
-  font-size: 12pt;
-  color: var(--accent);
+  color: var(--heading);
+  line-height: var(--rule);
+  height: var(--rule);
+  margin: 0;
 }
 
-.mermaid {
-  display: flex;
-  justify-content: center;
-  font-size: 11px !important;
-}
+.mermaid { display: flex; justify-content: center; }
 
-.callout {
-  margin: 4mm 0;
-  padding: 3mm 4mm;
-  border: 2px dashed var(--accent-2);
-  border-radius: 8px;
-  background: rgba(47, 93, 80, 0.06);
-  font-family: "Kalam", cursive;
-}
-
-.footer-note {
-  margin-top: 10mm;
-  font-family: "Kalam", cursive;
-  font-size: 10pt;
-  color: var(--ink-soft);
-  border-top: 1px dashed var(--rule);
-  padding-top: 3mm;
+.module-footer {
+  margin-top: calc(var(--rule) * 2);
+  border-top: 1px dashed #cbbfa8;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: var(--rule);
+  height: var(--rule);
 }
 
 .hljs-keyword, .hljs-selector-tag { color: #ffb4a2; }

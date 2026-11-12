@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Playwright official docs
+    url: https://playwright.dev
+    about: Verify APIs and version-sensitive behavior here before filing content bugs.
+  - name: Discussions (if enabled)
+    url: https://github.com/YOUR_GITHUB_USERNAME/playwright-interview-notes/discussions
+    about: Ask study-plan or interview strategy questions that are not concrete content bugs.

@@ -3,9 +3,9 @@
 ### Crack SDET / QA Automation interviews — junior → principal
 
 <p align="center">
-  <a href="https://github.com/YOUR_GITHUB_USERNAME/playwright-interview-notes/stargazers"><img src="https://img.shields.io/github/stars/YOUR_GITHUB_USERNAME/playwright-interview-notes?style=for-the-badge&logo=github" alt="GitHub stars"></a>
-  <a href="https://github.com/YOUR_GITHUB_USERNAME/playwright-interview-notes/network/members"><img src="https://img.shields.io/github/forks/YOUR_GITHUB_USERNAME/playwright-interview-notes?style=for-the-badge&logo=github" alt="GitHub forks"></a>
-  <a href="https://github.com/YOUR_GITHUB_USERNAME/playwright-interview-notes/issues"><img src="https://img.shields.io/github/issues/YOUR_GITHUB_USERNAME/playwright-interview-notes?style=for-the-badge" alt="GitHub issues"></a>
+  <a href="https://github.com/prashant0070/playwright-interview-notes/stargazers"><img src="https://img.shields.io/github/stars/prashant0070/playwright-interview-notes?style=for-the-badge&logo=github" alt="GitHub stars"></a>
+  <a href="https://github.com/prashant0070/playwright-interview-notes/network/members"><img src="https://img.shields.io/github/forks/prashant0070/playwright-interview-notes?style=for-the-badge&logo=github" alt="GitHub forks"></a>
+  <a href="https://github.com/prashant0070/playwright-interview-notes/issues"><img src="https://img.shields.io/github/issues/prashant0070/playwright-interview-notes?style=for-the-badge" alt="GitHub issues"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/Playwright-TypeScript-45ba4b?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright TypeScript">
   <img src="https://img.shields.io/badge/Modules-37-blue?style=for-the-badge" alt="37 modules">
@@ -57,12 +57,12 @@ If this saves you one interview loop, **star the repo** so others can find it.
 
 ```bash
 # clone & browse
-git clone https://github.com/YOUR_GITHUB_USERNAME/playwright-interview-notes.git
+git clone https://github.com/prashant0070/playwright-interview-notes.git
 cd playwright-interview-notes
 open README.md   # or: code .
 ```
 
-Replace `YOUR_GITHUB_USERNAME` with the actual GitHub owner when you publish.
+Replace `prashant0070` with the actual GitHub owner when you publish.
 
 ---
 
@@ -244,5 +244,5 @@ Unofficial community study notes. Not affiliated with Microsoft or the Playwrigh
 
 <p align="center">
   <b>If this helped you land the offer — star it, fork it, and pass it on.</b><br/>
-  <a href="https://github.com/YOUR_GITHUB_USERNAME/playwright-interview-notes">github.com/YOUR_GITHUB_USERNAME/playwright-interview-notes</a>
+  <a href="https://github.com/prashant0070/playwright-interview-notes">github.com/prashant0070/playwright-interview-notes</a>
 </p>
